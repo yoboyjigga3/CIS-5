@@ -1,0 +1,400 @@
+list libraries
+
+list function prototypes
+
+start main
+    declare variables
+        play
+        deck size
+        vetors for player and dealer hands
+        hand totals
+        ace hand
+        bust status
+        blackjack status
+        player bank and bet
+        player names
+        array of card names and values
+        
+        
+    get play value from menu function
+
+
+
+    begin while loop, if play = true
+        call resetDeck to reset card names and values
+
+        Set player blackjack to false
+
+        set player bust to false
+
+        clear all players hands (both names and values)
+
+        call showName (p1_name, bet)
+        call getBet (p1_bet, p1_bank)
+        cout new line
+        call showName (p2_name, bet)
+        call getBet (p2_bet, p2_bank)
+
+        //deal first player
+
+        cout new line
+        call showName
+        call deal to deal player a card
+        call deal to deal player a card
+        call showHand to display players hand
+        call chkBJ to check if player has blackjack
+
+        //deal second player
+        cout new line
+        call showName
+        call deal to deal player a card
+        call deal to deal player a card
+        call showHand to display players hand
+        call chkBJ to check if player has blackjack
+
+        cout new line
+        call showName to display that it's dealers deal
+        call deal to deal player a card
+        call deal to deal player a card
+        cout dealers face up card
+        delcare if(call chkAce to check if player has an ace){
+            set dealers ace hand = call Calchand and add 10
+        }
+
+        //player 1 
+        display players turn
+        display players hand
+        display hand total
+        declare switch( call turn function)
+            case 1: 
+                break
+            case 2: 
+                call hit function to add card to players hand
+                break
+            case 3: call surrender function
+                break
+
+
+        //player 2
+        display players turn
+        display players hand
+        display hand total
+        declare switch( call turn function)
+            case 1: 
+                break
+            case 2: 
+                call hit function to add card to players hand
+                break
+            case 3: call surrender function
+                break
+
+        //dealer turn
+        declare if statement, don't execute if p1 or p2 has bust
+            cout dealers turn
+            show dealer hand
+                declare if statement. Execute if dealer has not bust
+                    ouput dealers hand total
+                    call dealHit to see if dealer will hit
+                else
+                    cout blackjack
+        //check who won
+        declare if statement, execute if player 1 has not bust
+            call chkWin for player 1
+        else
+            output that player 1 has lost
+            output current bank value
+
+        declare if statement, execute if player 2 has not bust
+            call chkWin for player 2
+        else
+            output that player 2 has lost
+            output current bank value
+        
+        //write to scoreboard file
+        output that the score is being written to a text file
+
+        initalize text file object
+        write scores to text file
+        
+        close text fileagain
+
+        //check if player will play again
+        output new line
+        call ask function ("Play again")
+
+    end while loop
+
+    call exit function; 
+        
+end main
+    
+
+menu function
+    begin do-while loop
+        declare bool variable valid
+
+        begin do-while loop
+            set valid to true
+
+            output menu choices
+            input menu
+
+            if menu is > 3 or < 1
+                then print an error message
+                set valid to false
+
+        continue loop while valid is false
+
+        begin switch
+            case 1: set fin to true
+            case 2: output help line
+            case 3: set play to false
+                set fin to true
+    contine loop while fin is false
+
+
+declare void setName function
+    output player one to enter name
+    input player 1 name
+    ouput player 2 to enter name
+    input player 2 name
+
+
+delcare bool menu function
+    output blackjack title
+    display main menu options: play game, help, or exit
+
+    delare variables
+    valid
+    fin
+    play
+    input
+
+    initalize do while loop
+        initialize do while loop
+            set valid to true
+
+            prompt player for input
+
+            if input is > 3 or < 1
+                output that there is an error
+                then set valid to false
+        continue while valid is false
+
+        begin switch based on input
+            case 1: set fin to true
+                break
+            case 2: output help text
+                break
+            case 3: set play to false
+                set fin to true
+
+    continue while fin is false
+
+    return play
+
+
+declare void resetDeck
+    declare for loop, iterate once for every element of deck 
+        set card name equal to = number name + suit name
+
+    declare int n
+
+    delcare for loop, iterate once for every element of deck
+        set n = (i%13) + 1
+        if n is greater or equal to 10
+            card value = 10
+        else
+            card value equals n
+
+declare void deal
+    declare card and set it to random number generator less than current deck size
+
+    add card value element to players hand vector
+
+    remove card value element from value vector
+
+    add card name to players card name vector
+
+    remove card value element from card name vector
+
+
+
+declare void show hand
+    declare for loop, iterate for each element of players hand
+        output each card name
+
+
+
+declare int calchand
+    declare total set equal to 0
+
+    declarefor loop, iterate for each element of players hand
+        add card value to total
+
+    return total
+
+    declare void getBet
+        declare bool valid
+        set cout precision to fixed 2
+        display current bank amount
+
+        do while loop
+            set valid to true
+            prompt player for bet
+            input bet
+            if bet is greater than bank amount
+                output theres and error
+                set valid to false
+        while valid is false
+
+
+
+declare int exit
+    output exiting program
+    return 0
+
+
+declare int turn
+    declare choice
+        valid and set to true
+
+    print player options
+
+    do while loop
+        prompt player for input
+        set valid to true
+        input choice
+        if choice is > 3 or < 1
+            output error invalid selection
+            set valid to false
+    continue while valid is false
+
+    return choice
+
+
+declare void hit
+    declare cnt and set to true
+
+    do while loop
+        call deal function to add card to player hand
+        display card name that was added
+        call chkBJ to check if the player has gotten a blackjack
+    continue while cnt is true
+
+
+
+declare void dealhit
+    declare hit and set to false
+
+    if call chkace on current hand is true
+        if calchand on current hand + 10 > 17
+            set hit to true
+    else if call calchand on current is less than 17
+        set hit to true
+
+    if hit is true
+        output the dealer will hit
+        call deal function to add card to dealers hand
+        output new hand total
+        if new hand total > 21
+            output the dealer bust
+            set dealer bust to true
+        if new hand total = 21
+            output the dealer got 21
+            set dealer bj to true
+    else
+        output the dealer will stay
+    
+
+
+declare void surrender
+    cout set precision to 2 fixed
+    set bank = 1/2 of bet
+    output that the house is taking half players bet
+    output new bank amount
+
+
+declare void chkWin
+    declare player total is equal to call calchand on player hand
+    declare dealer total is equal to call calchand on dealer hand
+    
+    declare win set to false
+
+    if chkace on player hand is true
+        add 10 to player hand if the current total is under 10
+
+    if chkace on dealer hand is true
+        add 10 to dealer hand if the current total is under 10
+
+    if the dealer bust
+        set win to true
+
+    if player total = dealer total
+        output tie
+        add bet back to bank
+    else if player total is greater than dealer
+        set win to true
+
+declare bool chkAce
+    set int i to 0
+    set bool found to false
+
+    while loop (continue while i is less than hand size and an ace has not been found)
+        if handvalue element = 1
+            set found to true
+        inrement i
+    
+    return found
+
+declare chkBJ
+    set int ace to 0
+        tot to call calchand on current hand
+
+    if call of chkace on hand value is true
+        ace= tot + 20
+        if ace equals 21
+            output blackjack
+            set blackjack to true
+        else if ace is > 21
+            output hand total
+        else output handtotal and hand total with ace
+
+    else
+        if tot = 21
+            output blackjack
+            set bj to true
+        else    
+            output hand total
+
+
+declare void chkBJ
+    set int ace to 0
+        set total to calchand of current hand
+    set cnt to false
+
+    if total > 21
+        output player bust
+        set bust to true
+        set cnt to false
+    else    
+        if chkace of current hand is true
+            ace is total + 10
+            if ace = 21
+                output blackjack
+                set bj to true
+                set cnt to false
+            else if ace > 21 
+                output hand total
+                set cnt to true
+            else
+                output hand total with ace hand
+                ask if player wants to hit again
+        else
+            if total = 21
+                output blackjack
+                set bj to true
+                set cnt to fals 
+            else 
+                output hand total
+                ask if player wants to hit again
