@@ -1,0 +1,597 @@
+/*
+ * Author: Jacob Segundo
+ * Date: February 10, 2019
+ * Purpose: Project 2
+ */
+
+#include <iostream>
+#include <cmath>
+#include <iomanip>
+#include <cstdlib>
+#include <string>
+#include <fstream>
+#include <vector>
+using namespace std;
+
+
+//function prototypes
+bool menu();
+void showName(string, string); 
+void setName(string&, string&);
+void resetDeck(vector<string> &, vector<int> &, int, const string[], const string[]);
+void deal(vector<int> &, vector<string> &, vector<string> &, vector <int> &);
+int exit(); 
+void getBet (float &, float &);
+int calcHand(vector <int> &);
+void showHand(vector <string> &);
+int turn();
+void hit(vector<int> &, vector<string> &, vector<string> &, vector <int> &, bool &, bool &);
+void dealHit(vector<int> &, vector<string> &, vector<string> &, vector <int> &, bool &, bool &);
+void surrender(float &, float &);
+bool ask(string);
+void addWin(float , float &, string);
+void chkWin(bool, float, float&, string, vector<int> &, vector<int> &);
+bool chkAce(vector <int> &);
+void chkBJ(vector<int> &, bool &);
+void chkBJ(vector<int> &, bool &, bool &, bool &);
+
+int main(int argc, char const *argv[])
+{ 
+    //variables       
+        bool play = true;      //play game
+        const int deckSize = 52;
+
+
+        vector<int> P1_HandVal;
+        vector<string> P1_HandName;
+        vector<int> P2_HandVal;
+        vector<string> P2_HandName;
+        vector<int> DEALER_HandVal;
+        vector<string> DEALER_HandName;
+        vector<string> cardName(deckSize);
+        vector<int> cardValue(deckSize);
+        
+
+        int P1_TOT = 0,
+                P2_TOT = 0,
+                DEAL_TOT = 0,
+                P1_ACE,
+                P2_ACE,
+                DEALER_ACE;         //total of player's hand
+
+        bool P1_BUST = false,
+            P2_BUST = false,
+            DEALER_BUST = false,
+            P1_BJ,
+            P2_BJ,
+            DEAL_BJ,
+            CNT = true;   //if player has bust
+
+        float P1_BANK = 100,                //current player's bank
+                P2_BANK = 100,            
+                P1_BET,             //current player's bet amount
+                P2_BET; 
+
+        //player names
+        string P1_NAME, P2_NAME; 
+
+        srand (time(NULL));     //set random num generator
+        
+        
+        
+        string numName[] = {"Ace", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King"};
+        string suit[] = {"Clubs", "Diamonds", "Hearts", "Spades"};
+
+    
+    
+    //menu selection
+    play = menu(); 
+    
+    if(play == true){
+        setName(P1_NAME, P2_NAME);
+    }
+
+    //play game
+    while(play){
+        resetDeck(cardName, cardValue, deckSize, numName, suit);
+
+        P1_BJ = false;
+        P2_BJ = false;
+        DEAL_BJ = false; 
+
+        P1_BUST = false;
+        P2_BUST = false;
+        DEALER_BUST = false;
+
+        P1_HandName.clear();
+        P2_HandName.clear();
+        DEALER_HandName.clear();
+
+        P1_HandVal.clear();
+        P2_HandVal.clear();
+        DEALER_HandVal.clear();
+    
+        
+        //P1 Bet
+        showName(P1_NAME, "Bet");
+        getBet(P1_BET, P1_BANK);
+        cout << endl; 
+        //P2 Bet
+        showName(P2_NAME, "Bet");
+        getBet(P2_BET, P2_BANK);                     
+
+        //Deal P1
+            cout << endl; 
+            showName(P1_NAME, "Deal");
+            deal(cardValue, cardName, P1_HandName, P1_HandVal);
+            deal(cardValue, cardName, P1_HandName, P1_HandVal);
+            showHand(P1_HandName);
+            chkBJ(P1_HandVal, P1_BJ);
+        
+
+        //Deal P2
+            cout << endl;
+            showName(P2_NAME, "Deal");
+            deal(cardValue, cardName, 
+            P2_HandName, P2_HandVal);
+            deal(cardValue, cardName, P2_HandName, P2_HandVal);
+            showHand(P2_HandName);
+            chkBJ(P2_HandVal, P2_BJ);
+       
+        //Deal Dealer 
+            cout << endl; 
+            showName("Dealer", "Deal");
+            deal(cardValue, cardName, DEALER_HandName, DEALER_HandVal);
+            deal(cardValue, cardName, DEALER_HandName, DEALER_HandVal);
+            cout << "Dealer's Face up card: " << DEALER_HandName[0] << endl;
+            if (chkAce(DEALER_HandVal)){
+                DEALER_ACE = calcHand(DEALER_HandVal) + 10;
+            }
+
+
+        //P1 Choice
+
+        showName(P1_NAME, "Turn");
+        showHand(P1_HandName);
+        cout << "Current hand total: " << calcHand(P1_HandVal);
+        switch(turn()){
+            case 1:
+                break;
+            case 2:
+                hit(cardValue, cardName, P1_HandName, P1_HandVal, P1_BUST, P1_BJ);
+                break;
+            case 3:
+                surrender(P1_BET, P1_BANK);
+                break; 
+        }
+
+        //P2 Choice
+        showName(P2_NAME, "Turn");
+        showHand(P2_HandName);
+        cout << "Current hand total: " << calcHand(P2_HandVal);
+        switch(turn()){
+            case 1:
+                break;
+            case 2:
+                hit(cardValue, cardName, P2_HandName, P2_HandVal, P2_BUST, P1_BJ);
+                break;
+            case 3:
+                surrender(P2_BET, P2_BANK);
+                break;
+        }
+        
+
+        //Dealers actions
+        if (P1_BUST == false || P2_BUST == false){
+            cout << "\nDealer's Turn: " << endl;
+            cout << "--------------" << endl; 
+            showHand(DEALER_HandName);
+            if (!DEAL_BJ){
+                cout << "Hand total: " << calcHand(DEALER_HandVal) << endl; 
+                dealHit(cardValue, cardName, DEALER_HandName, DEALER_HandVal, DEALER_BUST, DEAL_BJ);
+            }
+            else{
+                cout << "Blackjack!";
+            }
+        }
+
+        P1_TOT = calcHand(P1_HandVal);
+        P2_TOT = calcHand(P2_HandVal);
+        DEAL_TOT = calcHand(DEALER_HandVal);
+        
+
+        
+        if(P1_BUST == false){
+            chkWin(DEALER_BUST, P1_BET, P1_BANK, P1_NAME, P1_HandVal, DEALER_HandVal);
+        }
+        else
+            cout << P1_NAME << "lost!" << endl;
+            cout << "New bank total: $" << P1_BANK << endl; 
+        
+        if(P2_BUST == false){
+            chkWin(DEALER_BUST, P2_BET, P2_BANK, P2_NAME, P2_HandVal, DEALER_HandVal);
+        }
+        else
+            cout << P2_NAME << "lost!" << endl;
+            cout << "New bank total: $" << P2_BANK << endl; 
+
+        //write score to leaderboard file
+        cout << endl << "Writing scores to score.txt...";
+        
+        ofstream outputFile; 
+        outputFile.open("score.txt");
+
+        outputFile << P1_NAME << "'s Hand: " << P1_TOT << endl;
+        outputFile << P2_NAME << "'s Hand: " << P2_TOT << endl;
+
+        //close file 
+        outputFile.close();
+
+        //Determine if player wants to play again
+        cout << endl; 
+        play = ask("Play again?");
+    }
+    
+    exit(); 
+}
+
+//function to display a player's name when it's their turn.
+void showName(string NAME, string TITLE){
+    cout << endl << NAME << "'s " << TITLE << endl; 
+    for (int i = 0; i < NAME.length(); i++){
+        cout << "-";
+    }
+    cout << "-------" << endl;
+}
+
+//function to set player names
+void setName(string &P1_NAME, string &P2_NAME){
+        cout << "\nPlayer 1 Enter Name: ";
+        cin >> P1_NAME;
+        cout << endl;
+
+        cout << "Player 2 Enter Name: ";
+        cin >> P2_NAME;
+}
+
+//output and gain input for main menu 
+bool menu(){
+        cout << "Welcome to blackjack" << endl;
+    cout << "--------------------" << endl;
+
+    cout << "1. Play Game" << endl;
+    cout << "2. Help" << endl; 
+    cout << "3. Exit" << endl;
+
+    bool VALID, fin = false, play = true;
+    int INPUT;
+    
+    do{
+        do{
+            VALID = true; 
+            
+            cout << endl << "Choice(1,2,3):";
+            cin >> INPUT;
+
+            if (INPUT > 3 || INPUT < 1){
+                cout << endl << "ERROR: Invalid input";
+                VALID = false;
+            }
+        }while(!VALID);
+
+        switch(INPUT){
+            case 1:
+                fin = true; 
+                break;
+            case 2:
+                cout << endl << "2 cards will be distributed to you to begin\n" << 
+                "and you may hit until you reach 21 or bust.\nThe goal is the beat the other hand.\n";
+                fin = false; 
+                break;
+            case 3:
+                play = false; 
+                fin = true;
+        }
+    }while(!fin);
+
+    return play;
+}
+
+//function to reset the card names
+void resetDeck(vector<string> &cardName, vector<int> &cardValue, int deckSize, const string numName[], const string suit[]){
+    //reset the card names
+    for (int i = 0; i < deckSize; i++){
+        cardName[i] = (numName[i % 13] + " of " + suit[i/13]);
+    }
+    //reset card values
+    int n;
+    for (int i = 0; i < deckSize; i++){
+        n = (i % 13) + 1;
+        if (n >= 10)
+            cardValue[i] = 10;
+        else
+            cardValue[i] = n; 
+    }
+}
+
+//function to deal a card to a player
+void deal(vector<int> &cardValue, vector<string> &cardName, vector<string> &handName, vector <int> &handValue){
+    int card = rand() % cardValue.size();     //get a random number to pull
+    //add value to hand
+    handValue.push_back(cardValue[card]);
+    //remove value from vector
+    cardValue.erase(cardValue.begin() + card);
+    //add name to hand
+    handName.push_back(cardName[card]);
+    //remove name from vector
+    cardName.erase(cardName.begin() + card);
+}
+
+//print the current cards in players hand
+void showHand(vector <string> &hand_name){
+    for (int i = 0; i < hand_name.size(); i++){
+        cout << hand_name[i] << endl;
+    }
+}
+
+//calculate the current hand total
+int calcHand(vector <int> &hand_value){
+    int total = 0; 
+    for (int i = 0; i < hand_value.size(); i++){
+        total += hand_value[i];
+    }
+
+    return total; 
+}
+
+//ask the player how much they want to bet
+void getBet (float &bet, float &bank){
+    bool valid; 
+    cout << setprecision(2) << fixed;
+    cout << "Current bank amount: $" << bank << endl; 
+
+    //gain and validate user input
+    do{
+        valid = true; 
+        cout << "How much to bet?: $";
+        cin >> bet;
+        if(bet > bank){
+            cout << "ERROR: VALUE INPUTTED GREATER THAN AMUONT AVAILABLE" << endl;
+            valid = false; 
+        }
+    }while(valid == false);
+    
+    bank -= bet;    //adjust bet from bank
+    cout << "Current bank amount: $" << bank; 
+}
+
+//exit program
+int exit(){
+    cout << endl << "Exiting program...";
+    return 0; 
+}
+
+//ask player what they want to do on their turn
+int turn(){
+    int choice;
+    bool valid = true; 
+    
+    //print menu
+    cout << "\n1. Stand" << endl;
+    cout << "2. Hit" << endl;
+    cout << "3. Surrender" << endl;
+    
+
+    //gain input and validate
+    do{
+        cout << "Enter Choice(1,2,3): ";
+        valid = true;
+        cin >> choice;
+        if (choice > 3 || choice < 1){
+            cout << "ERROR: INVALID SELECTION\n";
+            valid = false; 
+        }
+
+    }while(!valid);
+
+    return choice;
+}
+
+//hit card
+void hit(vector<int> &cardValue, vector<string> &cardName, vector<string> &handName, vector <int> &handValue, bool &bust, bool &BJ){
+    bool cnt = true;
+
+    do{
+        deal(cardValue, cardName, handName, handValue); //add card to players hand
+        cout << handName[(handName.size()- 1)] << endl;         //Print the card that was added
+        chkBJ(handValue, BJ, bust, cnt);
+    }while(cnt);
+}
+
+//the dealers hit decision
+void dealHit(vector<int> &cardValue, vector<string> &cardName, vector<string> &handName, vector <int> &handValue, bool &bust, bool &BJ){
+    bool hit = false; 
+
+    if(chkAce(handValue)){
+        if(calcHand(handValue) + 10 < 17)
+            hit = true;
+    }
+    else if (calcHand(handValue) < 17)
+        hit = true; 
+    
+
+    if(hit == true){
+        cout << endl << "The dealer will hit" << endl; 
+        deal(cardValue, cardName, handName, handValue);
+        cout << "New total: " << calcHand(handValue) << endl;
+        if (calcHand(handValue) > 21){
+            cout << "The dealer bust!" << endl;
+            bust = true; 
+        }
+        else if(calcHand(handValue) == 21){
+            cout << "The dealer got 21!" << endl;
+            BJ = true; 
+        }
+    }
+    else{
+        cout << "The dealer will stay" << endl; 
+    }
+}
+
+//surrender hand
+void surrender(float &bet, float &bank){
+    cout << setprecision(2) << fixed;
+    bank += (0.5 * bet);
+    cout << "The house is taking half of your bet..." << endl;
+    cout << "Current bank amount: $" << bank << endl; 
+}
+
+//ask player a question and get a yes or no answer
+bool ask(string question){
+    bool choice;
+    char ans;
+
+    cout << question << "(y/n): ";
+    cin >> ans; 
+    if (ans == 'y'|| ans == 'Y')
+        choice = true;
+    else if (ans == 'n' || ans == 'N')
+        choice = false;
+    
+    return choice;
+}
+
+void addWin(float bet, float &bank, string name){
+    bank += 2 * bet;
+    cout << name << " got a winning hand!!" << endl;
+    cout << "New bank amount: $" << bank << endl; 
+}
+
+void chkWin(bool dealBust, float bet, float &bank, string name, vector<int> &pHand, vector<int> &dHand){
+    int PTOT = calcHand(pHand),
+    DTOT = calcHand(dHand); 
+
+    bool win = false;
+
+    if(chkAce(pHand)){
+        if(PTOT + 10 <= 21){
+            PTOT += 10; 
+        }
+    }
+    if(chkAce(dHand)){
+        if(DTOT + 10 <= 21){
+            DTOT += 10; 
+        }
+    }
+
+    if(dealBust == true){
+        win = true; 
+    }
+
+    if(PTOT == DTOT){
+        cout << name << " tied with the dealer\nNo money lost!" << endl; 
+        bank += bet;
+    }
+    else if(PTOT > DTOT){
+        win = true;
+    }
+    
+
+    if(win){
+        cout << setprecision(2) << fixed; 
+        cout << name << " won $" << (bet * 2) << endl;
+        bank += bet;
+    }
+    else{
+        cout << name << "Lost!" << endl;
+    }
+
+    cout << "New bank total: $" << bank << endl; 
+}
+
+//checks if there's an Ace in the hand
+bool chkAce(vector <int> &handValue){
+    int i = 0;
+    bool found = false;
+
+    while (i < handValue.size() && !found){
+        if (handValue[i] == 1){
+            found = true; 
+        }
+        i++;
+    }
+
+    return found;
+}
+
+//checks for a blackjack
+//check during first deal
+void chkBJ(vector<int> &handValue, bool & BJ){
+    int ACE = 0,
+        TOT = calcHand(handValue);
+
+    if (chkAce(handValue)){    //check if there's an ace in the player's hand
+        ACE = TOT + 10;           
+        if (ACE == 21){          //check of the value with the ace as 11 = 21
+            cout << "Blackjack!" << endl;
+            BJ = true;
+        }
+        else if (ACE > 21){
+            cout << "Hand Total: " << TOT << endl; 
+        }
+        else{
+            cout << "Hand Total: " << TOT << "/" << ACE << endl; 
+        }
+    }
+    else{
+        if(TOT == 21){
+            cout << "Blackjack!" << endl;
+            BJ = true;
+        }
+        else{
+            cout << "Hand Total: " << TOT << endl;
+        }
+    }
+}
+
+//checks during turn
+void chkBJ(vector<int> &handValue, bool &BJ, bool &BUST, bool &cnt){
+    int ACE = 0,
+        TOT = calcHand(handValue);
+    cnt = false; 
+    
+    if(TOT > 21){
+            cout << "\nUh oh. You bust!" << endl;
+            BUST = true;
+            cnt = false; 
+    }
+    else{
+        if (chkAce(handValue) == true){    //check if there's an ace in the player's hand
+            ACE = TOT + 10;
+            if (ACE == 21){          //check of the value with the ace as 11 = 21
+                cout << "Blackjack!" << endl;
+                BJ = true;
+                cnt = false; 
+            }
+            else if(ACE > 21){
+                cout << "Hand Total: " << TOT << endl; 
+                cnt = true; 
+            }
+            else{
+                cout << "Hand Total: " << TOT << "/" << ACE << endl; 
+                cnt = ask("Hit again?");
+            }
+        }
+        else{
+            if(TOT == 21){
+                cout << "Blackjack!" << endl;
+                BJ = true;
+                cnt = false; 
+            }
+            else{
+                cout << "Hand Total: " << TOT << endl;
+                cnt = ask("Hit again?");
+            }
+        }
+    }
+}
