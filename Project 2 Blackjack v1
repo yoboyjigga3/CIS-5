@@ -1,0 +1,292 @@
+/*
+ * Author: Jacob Segundo
+ * Date: February 5, 2019
+ * Purpose: Poroject 2
+ */
+
+#include <iostream>
+#include <cmath>
+#include <iomanip>
+#include <cstdlib>
+#include <string>
+#include <fstream>
+#include <vector>
+using namespace std;
+
+
+//function prototypes
+bool menu();
+void showName(string); 
+void setName(string&, string&);
+void resetDeck(vector<string> &, vector<int> &, int, const string[], const string[]);
+void deal(vector<int> &, vector<string> &, vector<string> &, vector <int> &);
+
+int main(int argc, char const *argv[])
+{ 
+    //variables       
+    bool play = true;       //play game
+    const int max = 21;     //max card value
+    vector<int> P1_HandVal;
+    vector<string> P1_HandName;
+    vector<int> P2_HandVal;
+    vector<string> P2_HandName;
+
+    int CARD_COUNT = 0,     //count of card being dealt
+            P1_TOT = 0,
+            P2_TOT = 0;        //total of player's hand
+        bool CONT_DEAL = true;  //Continue dealing
+        bool P1_BUST = false, P2_BUST = false;   //if player has bust
+
+    //player names
+    string P1_NAME, P2_NAME; 
+
+    srand (time(NULL));     //set random num generator
+    
+    const int deckSize = 52;
+    vector<string> cardName(deckSize);
+    vector<int> cardValue(deckSize);
+    
+    string numName[] = {"Ace", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King"};
+    string suit[] = {"Clubs", "Diamonds", "Hearts", "Spades"};
+
+    resetDeck(cardName, cardValue, deckSize, numName, suit);
+    
+    //menu selection
+    play = menu(); 
+    
+
+    //play game
+    while(play){
+        
+        setName(P1_NAME, P2_NAME);
+        
+        
+        //Display Player 1's name                         
+        showName(P1_NAME);
+
+
+        //Deal P1
+        while(CONT_DEAL)
+        {   
+            P1_TOT = 0; 
+            CARD_COUNT++;
+            deal(cardValue, cardName, P1_HandName, P1_HandVal);
+            
+            
+            //calculate current hand total 
+            for (int &n : P1_HandVal){
+                P1_TOT += n; 
+            }
+
+            //
+            if (P1_TOT > 21){
+                cout << P1_TOT << "! You bust!" << endl;
+                P1_BUST = true; 
+                CONT_DEAL = false;
+            }
+
+
+            //show hand count and display hand total if it is after the 2nd hand
+            if (CARD_COUNT >= 2 && P1_BUST == false && P1_TOT != max){
+                cout << "Hand total: " << P1_TOT;
+                char choice; 
+                cout << "\nHit again?(y/n):";
+                cin >> choice;
+
+                (choice == 'y' || choice == 'Y') ? CONT_DEAL = true : CONT_DEAL = false;
+            }
+            else if (P1_TOT == max){
+                cout << endl << "21 Nice!";
+                CONT_DEAL = false;
+            }
+        }
+
+
+        //P2 Deal
+        CONT_DEAL = true;
+
+        //If P1 bust, stop P2's turn from occuring
+        if (P1_BUST){
+            CONT_DEAL= false;
+        }
+        else{
+            //Display Player 2's name                         
+            showName(P2_NAME);
+        }
+
+        //Initialize variables for P2 Turn
+        CARD_COUNT = 0;
+
+        while(CONT_DEAL)
+        {   
+            P2_TOT = 0; 
+            CARD_COUNT++;
+            deal(cardValue, cardName, P2_HandName, P2_HandVal);
+            
+            
+            //calculate current hand total 
+            for (int &n : P2_HandVal){
+                P2_TOT += n; 
+            }
+
+            //
+            if (P2_TOT > 21){
+                cout << P2_TOT << "! You bust!" << endl;
+                P2_BUST = true; 
+                CONT_DEAL = false;
+            }
+
+
+            //show hand count and display hand total if it is after the 2nd hand
+            if (CARD_COUNT >= 2 && P2_BUST == false && P2_TOT != max){
+                cout << "Hand total: " << P2_TOT;
+                char choice; 
+                cout << "\nHit again?(y/n):";
+                cin >> choice;
+
+                (choice == 'y' || choice == 'Y') ? CONT_DEAL = true : CONT_DEAL = false;
+            }
+            else if (P2_TOT == max){
+                cout << endl << "21 Nice!";
+                CONT_DEAL = false;
+            }
+            }
+        
+
+
+        //output who won/result
+        cout << endl;
+        if (P1_BUST == true || P1_TOT < P2_TOT)
+            cout << P2_NAME << " wins!";
+        else if (P2_BUST == true || P1_TOT > P2_TOT)
+            cout << P1_NAME << "wins!";
+        else if (P1_TOT == P2_TOT)
+            cout << "It's a tie";
+        
+        
+
+        //output final player hand
+        cout << endl << P1_NAME << "'s Hand: " << P1_TOT;
+        cout << endl << P2_NAME << "'s Hand: " << P2_TOT;
+
+        //write score to leaderboard file
+        cout << endl << "Writing scores to score.txt...";
+        
+        ofstream outputFile; 
+        outputFile.open("score.txt");
+
+
+        outputFile << P1_NAME << "'s Hand: " << P1_TOT << endl;
+        outputFile << P2_NAME << "'s Hand: " << P2_TOT << endl;
+
+        //close file 
+        outputFile.close();
+
+        //Determine if player wants to play again
+        cout << endl; 
+        char choice = false; 
+        cout << "Play again?(y/n):";
+        cin >> choice;
+
+        if (choice == 'y' || choice == 'Y')
+            play = true;
+        else if (choice == 'n' || choice == 'N')
+            play = false; 
+    }
+    
+    return 0;
+}
+
+//function to display a player's name when it's their turn.
+void showName(string NAME){
+    cout << endl << NAME << "'s Turn" << endl; 
+    for (int i = 0; i < NAME.length(); i++){
+        cout << "-";
+    }
+    cout << "-------" << endl;
+}
+
+//function to set player names
+void setName(string &P1_NAME, string &P2_NAME){
+        cout << "Player 1 Enter Name: ";
+        cin >> P1_NAME;
+        cout << endl;
+
+        cout << "Player 2 Enter Name: ";
+        cin >> P2_NAME;
+        cout << endl;
+}
+
+bool menu(){
+        cout << "Welcome to blackjack" << endl;
+    cout << "--------------------" << endl;
+
+    cout << "1. Play Game" << endl;
+    cout << "2. Help" << endl; 
+    cout << "3. Exit" << endl;
+
+    bool VALID, fin = false, play = true;
+    int INPUT;
+    
+    do{
+        do{
+            VALID = true; 
+            cout << endl << "Choice(1,2,3):";
+            cin >> INPUT;
+
+            if (INPUT > 3 || INPUT < 1){
+                cout << endl << "ERROR: Invalid input";
+                VALID = false;
+            }
+        }while(!VALID);
+
+        switch(INPUT){
+            case 1:
+                fin = true; 
+                break;
+            case 2:
+                cout << endl << "2 cards will be distributed to you to begin\n" << 
+                "and you may hit until you reach 21 or bust.\nThe goal is the beat the other hand.\n";
+                fin = false; 
+                break;
+            case 3:
+                play = false; 
+                fin = true;
+        }
+    }while(!fin);
+
+    return play;
+}
+
+
+//function to reset the card names
+void resetDeck(vector<string> &cardName, vector<int> &cardValue, int deckSize, const string numName[], const string suit[]){
+    //reset the card names
+    for (int i = 0; i < deckSize; i++){
+        cardName[i] = numName[((i+1) % 13)-1] + " of " + suit[i/13];
+    }
+    //reset card values
+    int n;
+    for (int i = 0; i < deckSize; i++){
+        n = (i+1) % 13;
+        if (n > 10)
+            cardValue[i] = 10;
+        else
+            cardValue[i] = n - 1; 
+    }
+}
+
+
+//function to deal a card to a player
+void deal(vector<int> &cardValue, vector<string> &cardName, vector<string> &handName, vector <int> &handValue){
+int card = rand() % (cardValue.size());     //get a random number to pull
+//add value to hand
+handValue.push_back(cardValue[card]);
+//remove value from vector
+cardValue.erase(cardValue.begin() + card);
+//add name to hand
+handName.push_back(cardName[card]);
+cout << cardName[card] << endl;
+//remove name from vector
+cardName.erase(cardName.begin() + card);
+}
